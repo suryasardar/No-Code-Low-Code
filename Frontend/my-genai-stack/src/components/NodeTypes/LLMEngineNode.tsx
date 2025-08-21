@@ -5,9 +5,14 @@ import { Cpu, Settings, Trash2 } from 'lucide-react';
 import { useWorkflowStore } from '../../store/workflowStore.ts';
 import type { NodeData } from '../../store/workflowStore.ts';
 
+type WorkflowStore = {
+  updateNodeConfig: (id: string, config: Partial<NodeData>) => void;
+  removeNode: (id: string) => void;
+  // add other properties if needed
+};
 
 export const LLMNode = memo(({ data, id, selected }: NodeProps<NodeData>) => {
-  const { updateNodeConfig, removeNode } = useWorkflowStore();
+  const { updateNodeConfig, removeNode } = useWorkflowStore()as WorkflowStore;
   
   const handleConfigChange = useCallback((key: string, value: any) => {
     updateNodeConfig(id, { [key]: value });

@@ -5,11 +5,17 @@ import { MessageSquare, Settings, Trash2 } from 'lucide-react';
 import { useWorkflowStore } from '../../store/workflowStore.ts';
 import type { NodeData } from '../../store/workflowStore.ts';
 
+// The local 'WorkflowStore' type definition is not needed and was causing a type conflict.
+// We can simply use the strongly-typed store directly.
 
 export const UserQueryNode = memo(({ data, id, selected }: NodeProps<NodeData>) => {
+  // Destructure the actions from the store. No type assertion is needed here.
   const { updateNodeConfig, removeNode } = useWorkflowStore();
   
+  // This function is now correctly typed and passed to the store's update function.
   const handleQueryChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    // The `updateNodeConfig` function correctly expects a Partial<NodeConfig> object.
+    // The `query` property lives within the `config` object, not at the top level of `NodeData`.
     updateNodeConfig(id, { query: e.target.value });
   }, [id, updateNodeConfig]);
 
@@ -58,6 +64,11 @@ export const UserQueryNode = memo(({ data, id, selected }: NodeProps<NodeData>) 
           placeholder="Write your query here"
           className="w-full p-3 border border-gray-300 rounded-md text-sm resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
           rows={3}
+          onKeyDown={(e) => {
+    if (e.key === "Backspace" || e.key === "Delete") {
+      e.stopPropagation(); // ✅ Prevent React Flow from deleting node
+    }
+  }}
         />
       </div>
       

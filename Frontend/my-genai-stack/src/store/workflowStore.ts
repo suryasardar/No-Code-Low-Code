@@ -1,9 +1,67 @@
-// store/workflowStore.js
+// store/workflowStore.ts
 import { create } from 'zustand';
 import { applyNodeChanges, applyEdgeChanges, addEdge } from 'reactflow';
+import { immer } from 'zustand/middleware/immer';
+
+// ==================== TYPE DEFINITIONS ====================
+export type NodeConfig = {
+  model?: string;
+  apiKey?: string;
+  temperature?: string;
+  webSearchEnabled?: boolean;
+  serpApiKey?: string;
+  prompt?: string;
+  embeddingModel?: string;
+  uploadedFileName?: string | null;
+  uploadedFile?: File | null;
+  stackId?: string | null;
+  documentId?: string | null;
+  uploadedAt?: string | null;
+  query?: string;
+  output?: string;
+};
+
+export type NodeType = 'userQueryNode' | 'knowledgeBaseNode' | 'llmNode' | 'outputNode' | 'webSearchNode';
+
+export type NodeData = {
+  name: string;
+  type: NodeType;
+  config: NodeConfig;
+};
+
+export type WorkflowState = {
+  selectedWorkflowId: string | null;
+  nodes: any[];
+  edges: any[];
+  workflowName: string;
+  workflowDescription: string;
+  workflowConfig: any;
+  draggedType: string | null;
+};
+
+export type WorkflowActions = {
+  setSelectedWorkflowId: (id: string | null) => void;
+  setNodes: (nodes: any[]) => void;
+  setEdges: (edges: any[]) => void;
+  setWorkflowName: (name: string) => void;
+  setWorkflowDescription: (description: string) => void;
+  setDraggedType: (type: string | null) => void;
+  setWorkflowConfig: (config: any) => void;
+  resetWorkflowBuilder: () => void;
+  addNode: (node: any) => void;
+  removeNode: (nodeId: string) => void;
+  removeEdge: (edgeId: string) => void;
+  updateNodeConfig: (nodeId: string, newConfig: Partial<NodeConfig>) => void;
+  onNodesChange: (changes: any) => void;
+  onEdgesChange: (changes: any) => void;
+  onConnect: (connection: any) => void;
+  saveWorkflow: () => Promise<any>;
+  loadWorkflow: (workflowId: string) => Promise<boolean>;
+  saveAndExecuteWorkflow: (userQuery: string) => Promise<any>;
+};
 
 // ==================== Helper Functions ====================
-function getNodeName(type) {
+function getNodeName(type: NodeType): string {
   switch (type) {
     case 'userQueryNode':
       return 'UserQuery';
@@ -20,7 +78,7 @@ function getNodeName(type) {
   }
 }
 
-function determineEdgeName(connection, nodes) {
+function determineEdgeName(connection: any, nodes: any[]): string {
   const { source, target, sourceHandle, targetHandle } = connection;
   const sourceNode = nodes.find((node) => node.id === source);
   const targetNode = nodes.find((node) => node.id === target);
@@ -60,7 +118,7 @@ function determineEdgeName(connection, nodes) {
 // ==================== TYPE CONVERSION FUNCTIONS ====================
 
 // Convert frontend node types to backend node types
-function convertNodeType(type) {
+function convertNodeType(type: NodeType): string {
   const typeMapping = {
     'userQueryNode': 'userQuery',
     'outputNode': 'output',
@@ -72,8 +130,8 @@ function convertNodeType(type) {
 }
 
 // Convert backend node types to frontend node types
-function convertBackendNodeType(type) {
-  const typeMapping = {
+function convertBackendNodeType(type: string): NodeType | string {
+  const typeMapping: Record<string, NodeType> = {
     'userQuery': 'userQueryNode',
     'output': 'outputNode', 
     'llmEngine': 'llmNode',
@@ -86,21 +144,19 @@ function convertBackendNodeType(type) {
 // ==================== CONVERSION FUNCTIONS ====================
 
 // Convert nodes array to dictionary for backend (using node IDs as keys)
-function nodesToDict(nodes) {
-  const nodesDict = {};
+function nodesToDict(nodes: any[]): any {
+  const nodesDict: any = {};
   nodes.forEach((node) => {
     nodesDict[node.id] = {
       id: node.id,
-      type: convertNodeType(node.type || node.data?.type), // Convert to backend type
+      type: convertNodeType(node.type as NodeType),
       position: node.position,
       data: {
         ...node.data,
-        // Ensure type is set in data as well
-        type: convertNodeType(node.data?.type || node.type),
-        // Remove file object before sending
+        type: convertNodeType(node.data?.type as NodeType),
         config: node.data?.config ? {
           ...node.data.config,
-          uploadedFile: undefined
+          uploadedFile: undefined // Remove non-serializable object
         } : {}
       }
     };
@@ -109,8 +165,8 @@ function nodesToDict(nodes) {
 }
 
 // Convert edges array to dictionary for backend
-function edgesToDict(edges) {
-  const edgesDict = {};
+function edgesToDict(edges: any[]): any {
+  const edgesDict: any = {};
   edges.forEach(edge => {
     edgesDict[edge.id] = {
       id: edge.id,
@@ -126,26 +182,25 @@ function edgesToDict(edges) {
 }
 
 // Convert nodes dictionary from backend to array for React Flow
-function dictToNodes(nodesDict) {
+function dictToNodes(nodesDict: any): any[] {
   if (!nodesDict || typeof nodesDict !== 'object') return [];
   
-  return Object.values(nodesDict).map((node) => ({
+  return Object.values(nodesDict).map((node: any) => ({
     id: node.id,
-    type: convertBackendNodeType(node.type), // Convert from backend type
+    type: convertBackendNodeType(node.type),
     position: node.position || { x: 0, y: 0 },
     data: {
       ...node.data,
-      // Ensure frontend type is set
       type: convertBackendNodeType(node.type || node.data?.type)
     }
   }));
 }
 
 // Convert edges dictionary from backend to array for React Flow
-function dictToEdges(edgesDict) {
+function dictToEdges(edgesDict: any): any[] {
   if (!edgesDict || typeof edgesDict !== 'object') return [];
   
-  return Object.values(edgesDict).map((edge) => ({
+  return Object.values(edgesDict).map((edge: any) => ({
     id: edge.id,
     source: edge.source,
     target: edge.target,
@@ -159,46 +214,32 @@ function dictToEdges(edgesDict) {
 }
 
 // Extract API keys from nodes
-function extractApiKeys(nodes) {
-  const apiKeys = {
-    llm: '',
-    knowledge: '',
-    websearch: ''
-  };
+function extractApiKeys(nodes: any[]): Record<string, string> {
+  const apiKeys: Record<string, string> = {};
 
   nodes.forEach(node => {
-    if (node.data?.config) {
-      const config = node.data.config;
-      
+    const config = node.data?.config;
+    if (config) {
       if ((node.data.type === 'llmNode' || node.type === 'llmNode') && config.apiKey) {
         apiKeys.llm = config.apiKey;
       }
-      
       if ((node.data.type === 'knowledgeBaseNode' || node.type === 'knowledgeBaseNode') && config.apiKey) {
         apiKeys.knowledge = config.apiKey;
       }
-      
-      if (((node.data.type === 'llmNode' || node.type === 'llmNode') && config.serpApiKey) || 
-          ((node.data.type === 'webSearchNode' || node.type === 'webSearchNode') && config.serpApiKey)) {
+      if ((node.data.type === 'webSearchNode' || node.type === 'webSearchNode') && config.serpApiKey) {
         apiKeys.websearch = config.serpApiKey;
       }
     }
   });
 
-  // Only include keys that have values
-  const filteredApiKeys = {};
-  if (apiKeys.llm) filteredApiKeys.llm = apiKeys.llm;
-  if (apiKeys.knowledge) filteredApiKeys.knowledge = apiKeys.knowledge;
-  if (apiKeys.websearch) filteredApiKeys.websearch = apiKeys.websearch;
-
-  return filteredApiKeys;
+  return apiKeys;
 }
 
 // ==================== API Configuration ====================
 const API_BASE_URL = 'http://127.0.0.1:8000';
 
 // ==================== Zustand Store ====================
-export const useWorkflowStore = create((set, get) => ({
+export const useWorkflowStore = create<WorkflowState & WorkflowActions>()(immer((set, get) => ({
   // State
   selectedWorkflowId: null,
   nodes: [],
@@ -230,12 +271,12 @@ export const useWorkflowStore = create((set, get) => ({
     }),
 
   // Node Management
-  addNode: (node) => {
+  addNode: (node: any) => {
     set((state) => {
-      // Initialize config based on node type
-      let initialConfig = {};
+      let initialConfig: NodeConfig = {};
+      const nodeType = node.data?.type as NodeType;
       
-      switch (node.data.type) {
+      switch (nodeType) {
         case 'llmNode':
           initialConfig = {
             model: 'GPT-4o-Mini',
@@ -256,7 +297,7 @@ Please provide a comprehensive answer.`,
             embeddingModel: 'text-embedding-3-large',
             apiKey: '',
             uploadedFileName: '',
-            uploadedFile: null,
+            stackId: null,
           };
           break;
         case 'userQueryNode':
@@ -280,64 +321,54 @@ Please provide a comprehensive answer.`,
         ...node,
         data: {
           ...node.data,
-          name: node.data.name || getNodeName(node.data.type),
+          name: node.data.name || getNodeName(nodeType),
           config: { ...initialConfig, ...node.data.config },
         },
       };
 
-      return {
-        nodes: [...state.nodes, nodeWithDefaults],
-      };
+      state.nodes.push(nodeWithDefaults);
     });
   },
 
-  removeNode: (nodeId) =>
+  removeNode: (nodeId: string) =>
     set((state) => ({
-      nodes: state.nodes.filter((node) => node.id !== nodeId),
+      nodes: state.nodes.filter((node: any) => node.id !== nodeId),
       edges: state.edges.filter(
-        (edge) => edge.source !== nodeId && edge.target !== nodeId
+        (edge: any) => edge.source !== nodeId && edge.target !== nodeId
       ),
     })),
 
-  removeEdge: (edgeId) =>
+  removeEdge: (edgeId: string) =>
     set((state) => ({
-      edges: state.edges.filter((edge) => edge.id !== edgeId),
+      edges: state.edges.filter((edge: any) => edge.id !== edgeId),
     })),
 
-  updateNodeConfig: (nodeId, newConfig) => {
+  updateNodeConfig: (nodeId: string, newConfig: Partial<NodeConfig>) => {
     set((state) => {
-      const updatedNodes = state.nodes.map((node) =>
-        node.id === nodeId
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                config: { ...node.data.config, ...newConfig },
-              },
-            }
-          : node
-      );
-
-      return {
-        nodes: updatedNodes,
-      };
+      const nodeIndex = state.nodes.findIndex((n) => n.id === nodeId);
+      if (nodeIndex !== -1) {
+        state.nodes[nodeIndex].data.config = {
+          ...state.nodes[nodeIndex].data.config,
+          ...newConfig,
+        };
+      }
     });
   },
 
   // React Flow Handlers
-  onNodesChange: (changes) => {
+  onNodesChange: (changes: any) => {
     set((state) => ({
       nodes: applyNodeChanges(changes, state.nodes),
     }));
   },
 
-  onEdgesChange: (changes) => {
+  onEdgesChange: (changes: any) => {
     set((state) => ({
       edges: applyEdgeChanges(changes, state.edges),
     }));
   },
 
-  onConnect: (connection) => {
+  onConnect: (connection: any) => {
     set((state) => {
       const edgeName = determineEdgeName(connection, state.nodes);
       const newEdge = {
@@ -364,27 +395,21 @@ Please provide a comprehensive answer.`,
     const workflowId = state.selectedWorkflowId;
     
     if (!workflowId) {
-      console.error('No workflow ID set');
-      throw new Error('No workflow ID available');
+      throw new Error('No workflow ID set');
     }
 
-    console.log('Saving workflow with ID:', workflowId);
-
-    // Convert arrays to dictionaries for backend
     const nodesDict = nodesToDict(state.nodes);
     const edgesDict = edgesToDict(state.edges);
     const apiKeys = extractApiKeys(state.nodes);
 
     const payload = {
       stack_id: workflowId,
-      nodes: nodesDict,  // Dictionary with node IDs as keys
-      edges: edgesDict,  // Dictionary with edge IDs as keys
+      nodes: nodesDict,
+      edges: edgesDict,
       api_keys: Object.keys(apiKeys).length > 0 ? apiKeys : null
     };
 
     try {
-      console.log('Saving workflow with payload:', JSON.stringify(payload, null, 2));
-      
       const response = await fetch(`${API_BASE_URL}/api/workflow`, {
         method: 'POST',
         headers: {
@@ -400,9 +425,7 @@ Please provide a comprehensive answer.`,
       }
 
       const result = await response.json();
-      console.log('Workflow saved successfully:', result);
       
-      // Update selectedWorkflowId if API returns a different ID
       if (result.stack_id && result.stack_id !== workflowId) {
         set({ selectedWorkflowId: result.stack_id });
       }
@@ -417,19 +440,15 @@ Please provide a comprehensive answer.`,
   // GET /api/workflow/{stack_id} - Load workflow
   loadWorkflow: async (workflowId) => {
     try {
-      // Skip loading for new/temporary workflows
       if (!workflowId || workflowId === 'new' || workflowId.startsWith('temp_')) {
         set({ selectedWorkflowId: workflowId });
         return true;
       }
-
-      console.log('Loading workflow with ID:', workflowId);
       
       const response = await fetch(`${API_BASE_URL}/api/workflow/${workflowId}`);
       
       if (!response.ok) {
         if (response.status === 404) {
-          console.log('Workflow not found, creating new workflow');
           set({ 
             selectedWorkflowId: workflowId,
             nodes: [],
@@ -443,15 +462,10 @@ Please provide a comprehensive answer.`,
       }
 
       const data = await response.json();
-      console.log('Loaded workflow data:', data);
       
-      // Convert dictionaries from backend to arrays for React Flow
       const nodes = dictToNodes(data.nodes);
       const edges = dictToEdges(data.edges);
       
-      console.log('Converted nodes:', nodes);
-      console.log('Converted edges:', edges);
-
       set({
         selectedWorkflowId: data.stack_id || workflowId,
         nodes: nodes,
@@ -463,7 +477,6 @@ Please provide a comprehensive answer.`,
       return true;
     } catch (error) {
       console.error('Error loading workflow:', error);
-      // On error, initialize empty workflow
       set({ 
         selectedWorkflowId: workflowId,
         nodes: [],
@@ -480,20 +493,12 @@ Please provide a comprehensive answer.`,
     const state = get();
     
     try {
-      console.log('🚀 Starting save and execute workflow process...');
-      
-      // Step 1: Save the workflow first
-      console.log('💾 Step 1: Saving workflow...');
       const saveResult = await state.saveWorkflow();
       
       if (!saveResult) {
         throw new Error('Failed to save workflow');
       }
       
-      console.log('✅ Workflow saved successfully, now executing...');
-      
-      // Step 2: Execute the workflow
-      console.log('⚡ Step 2: Executing workflow with query:', userQuery);
       const workflowId = state.selectedWorkflowId;
       
       if (!workflowId) {
@@ -504,9 +509,6 @@ Please provide a comprehensive answer.`,
         stack_id: workflowId,
         query: userQuery
       };
-
-      console.log('📡 Sending execute request to:', `${API_BASE_URL}/api/workflow/execute`);
-      console.log('📡 Execute payload:', executePayload);
 
       const executeResponse = await fetch(`${API_BASE_URL}/api/workflow/execute`, {
         method: 'POST',
@@ -523,13 +525,11 @@ Please provide a comprehensive answer.`,
       }
 
       const executeResult = await executeResponse.json();
-      console.log('🎉 Workflow executed successfully:', executeResult);
       
       // Update the output node with the result
       if (executeResult.result) {
         const outputNode = state.nodes.find(node => node.type === 'outputNode');
         if (outputNode) {
-          console.log('📝 Updating output node with result...');
           state.updateNodeConfig(outputNode.id, {
             output: executeResult.result
           });
@@ -547,9 +547,9 @@ Please provide a comprehensive answer.`,
       console.error('💥 Error in save and execute workflow:', error);
       return {
         success: false,
-        error: error.message,
-        message: `Failed to save and execute workflow: ${error.message}`
+        error: error instanceof Error ? error.message : 'Unknown error',
+        message: `Failed to save and execute workflow: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   },
-}));
+})));

@@ -5,16 +5,7 @@ import { Cpu } from 'lucide-react';
 const Sidebar = ({ componentTypes, onDragStart }) => {
   return (
     <aside className="w-10 lg:w-20 xl:w-64  bg-white border-r shadow-sm flex flex-col">
-      {/* Header */}
-      {/* <div className="p-4 border-b bg-gradient-to-r from-green-500 to-green-600">
-        <div className="flex items-center gap-2 text-white">
-          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-            <Cpu className="w-5 h-5" />
-          </div>
-          <span className="font-bold">GenAI Stack</span>
-        </div>
-      </div>
-       */}
+       
       {/* Components Section */}
       <div className="p-4 flex-1 overflow-y-auto">
         <h3 className="text-xs font-semibold text-gray-500 uppercase mb-3">

@@ -34,23 +34,6 @@ const Header = ({
               {/* <p className="text-xs text-gray-500">Build AI Workflows</p> */}
             </div>
           </div>
-          
-            {/* <div>
-              <input
-                type="text"
-                value={workflowName || 'Untitled Workflow'}
-                onChange={(e) => onNameChange(e.target.value)}
-                className="text-lg font-semibold text-gray-800 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none transition-colors px-1"
-                placeholder="Workflow Name"
-              />
-              <input
-                type="text"
-                value={workflowDescription || ''}
-                onChange={(e) => onDescriptionChange(e.target.value)}
-                className="block text-sm text-gray-600 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none transition-colors px-1 mt-1 w-full"
-                placeholder="Add a description..."
-              />
-            </div> */}
           </div>
 
           {/* Right section */}

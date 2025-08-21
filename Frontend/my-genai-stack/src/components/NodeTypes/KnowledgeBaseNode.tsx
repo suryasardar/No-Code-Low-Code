@@ -2,16 +2,7 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { FileText, Upload, Settings, Trash2, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { useWorkflowStore } from '../../store/workflowStore.ts';
-import type { NodeData } from '../../store/workflowStore.ts';
-import { useParams } from 'react-router-dom';
-
-// Add the correct type for the workflow store
-type WorkflowStore = {
-  updateNodeConfig: (id: string, config: Partial<NodeData>) => void;
-  removeNode: (id: string) => void;
-  // add other properties if needed
-};
+import { useWorkflowStore, NodeData, NodeConfig } from '../../store/workflowStore';
 
 // API configuration
 const API_BASE_URL = 'http://127.0.0.1:8000';
@@ -22,18 +13,8 @@ const isValidUUID = (str: string): boolean => {
   return uuidRegex.test(str);
 };
 
-// Generate a valid UUID v4
-const generateUUID = (): string => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0;
-    const v = c == 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
-};
-
 // API Functions
 const uploadDocument = async (file: File, stackId: string, apiKey?: string, embeddingModel?: string) => {
-  // Validate stackId is a UUID
   if (!isValidUUID(stackId)) {
     throw new Error(`Invalid stack_id format: ${stackId}. Expected UUID format.`);
   }
@@ -62,86 +43,28 @@ const uploadDocument = async (file: File, stackId: string, apiKey?: string, embe
   return await response.json();
 };
 
-const getDocuments = async (stackId: string) => {
-  // Validate stackId is a UUID
-  if (!isValidUUID(stackId)) {
-    throw new Error(`Invalid stack_id format: ${stackId}. Expected UUID format.`);
-  }
-
-  const response = await fetch(`${API_BASE_URL}/documents/${stackId}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch documents: ${response.statusText}`);
-  }
-
-  return await response.json();
-};
-
 export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeData>) => {
-  const { updateNodeConfig, removeNode } = useWorkflowStore() as WorkflowStore;
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { workflowId } = useParams();
-  console.log('KnowledgeBaseNode workflowId:', workflowId);
+  
+  // Get state and actions directly from the store
+  const selectedWorkflowId = useWorkflowStore((state) => state.selectedWorkflowId);
+  const { updateNodeConfig, removeNode } = useWorkflowStore();
 
-  // Upload states
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  // Ensure we have a valid UUID for stackId
-  const getValidStackId = () => {
-    const configStackId = data.config?.stackId;
-    
-    // If config has a valid UUID, use it
-    if (configStackId && isValidUUID(configStackId)) {
-      return configStackId;
-    }
-    
-    // If workflowId is a valid UUID, use it
-    if (workflowId && isValidUUID(workflowId)) {
-      return workflowId;
-    }
-    
-    // If node id is a valid UUID, use it
-    if (isValidUUID(id)) {
-      return id;
-    }
-    
-    // Generate a new UUID as fallback
-    const newStackId = generateUUID();
-    console.warn(`No valid UUID found for stack_id. Generated new UUID: ${newStackId}`);
-    return newStackId;
-  };
-
-  const config = {
-    embeddingModel: 'text-embedding-3-large',
-    apiKey: '',
-    uploadedFileName: '',
-    uploadedFile: null,
-    stackId: workflowId, // Use workflowId as default
-    ...data.config, // Spread existing config
-    // Override stackId if it's invalid
-  };
-
-  // Debug logs
-  console.log('KnowledgeBaseNode stackId (workflowId):', workflowId);
-  console.log('KnowledgeBaseNode config stackId:', config.stackId);
-  // console.log('data.config?.stackId:', data.config?.stackId);
+  const config = data.config || {};
 
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const stackId = config.stackId || getValidStackId();
+    const stackId = selectedWorkflowId;
     
-    // Validate stackId before proceeding
-    if (!isValidUUID(stackId)) {
-      setUploadError('Invalid stack ID format. Please check your configuration.');
+    if (!stackId || !isValidUUID(stackId)) {
+      setUploadStatus('error');
+      setUploadError('Workflow must be saved first to have a valid ID for document uploads.');
       return;
     }
 
@@ -151,12 +74,8 @@ export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeDat
 
     try {
       // Update UI immediately
-      updateNodeConfig(id, { 
-        uploadedFileName: file.name,
-        uploadedFile: file 
-      });
+      updateNodeConfig(id, { uploadedFileName: file.name });
 
-      // Upload to server
       const result = await uploadDocument(
         file,
         stackId,
@@ -167,11 +86,9 @@ export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeDat
       console.log('Upload successful:', result);
       setUploadStatus('success');
       
-      // Update config with server response if needed
       updateNodeConfig(id, {
         uploadedFileName: file.name,
-        uploadedFile: file,
-        documentId: result.id, // Store document ID from server
+        documentId: result.id,
         uploadedAt: new Date().toISOString()
       });
 
@@ -180,23 +97,18 @@ export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeDat
       setUploadStatus('error');
       setUploadError(error instanceof Error ? error.message : 'Upload failed');
       
-      // Reset file on error
-      updateNodeConfig(id, { 
-        uploadedFileName: null,
-        uploadedFile: null 
-      });
+      updateNodeConfig(id, { uploadedFileName: null, documentId: null, uploadedAt: null });
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     } finally {
       setIsUploading(false);
     }
-  }, [id, updateNodeConfig, config.stackId, config.apiKey, config.embeddingModel]);
+  }, [id, updateNodeConfig, selectedWorkflowId, config.apiKey, config.embeddingModel]);
 
   const handleRemoveFile = useCallback(() => {
     updateNodeConfig(id, { 
       uploadedFileName: null,
-      uploadedFile: null,
       documentId: null,
       uploadedAt: null
     });
@@ -207,30 +119,13 @@ export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeDat
     setUploadError(null);
   }, [id, updateNodeConfig]);
 
-  const handleConfigChange = useCallback((key: string, value: any) => {
+  const handleConfigChange = useCallback((key: keyof NodeConfig, value: any) => {
     updateNodeConfig(id, { [key]: value });
   }, [id, updateNodeConfig]);
 
   const handleDelete = useCallback(() => {
     removeNode(id);
   }, [id, removeNode]);
-
-  const handleFetchDocuments = useCallback(async () => {
-    const stackId = config.stackId || getValidStackId();
-    
-    if (!isValidUUID(stackId)) {
-      console.error('Invalid stack ID format for fetching documents');
-      return;
-    }
-
-    try {
-      const documents = await getDocuments(stackId);
-      console.log('Documents fetched:', documents);
-      // You can update the node config with fetched documents if needed
-    } catch (error) {
-      console.error('Failed to fetch documents:', error);
-    }
-  }, [config.stackId]);
 
   const getUploadStatusIcon = () => {
     if (isUploading) return <Loader2 className="w-4 h-4 animate-spin text-blue-500" />;
@@ -263,13 +158,6 @@ export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeDat
           </div>
           <div className="flex items-center gap-1">
             <button
-              onClick={handleFetchDocuments}
-              className="p-1 hover:bg-green-200 rounded transition-colors"
-              title="Fetch Documents"
-            >
-              <Settings className="w-4 h-4 text-gray-500 hover:text-gray-700" />
-            </button>
-            <button
               onClick={handleDelete}
               className="p-1 hover:bg-red-200 rounded transition-colors"
               title="Delete"
@@ -286,25 +174,17 @@ export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeDat
           Let LLM search info in your file
         </div>
 
-        {/* Stack ID with validation indicator */}
+        {/* Workflow ID */}
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">
-            Stack ID {!isValidUUID(config.stackId || '') && <span className="text-red-500">(Invalid UUID)</span>}
+            Workflow ID
           </label>
-          <input
-            type="text"
-            value={config.stackId}
-            onChange={(e) => handleConfigChange('stackId', e.target.value)}
-            placeholder="Enter valid UUID (e.g., 123e4567-e89b-12d3-a456-426614174000)"
-            className={`w-full p-2 border rounded-md text-sm focus:ring-2 focus:border-transparent outline-none ${
-              isValidUUID(config.stackId || '') 
-                ? 'border-gray-300 focus:ring-green-500' 
-                : 'border-red-300 focus:ring-red-500'
-            }`}
-          />
-          {!isValidUUID(config.stackId || '') && (
+          <div className="w-full p-2 border border-gray-300 rounded-md text-sm bg-gray-100 truncate">
+            {selectedWorkflowId || 'Not Saved'}
+          </div>
+          {!selectedWorkflowId && (
             <div className="text-xs text-red-600 mt-1">
-              Stack ID must be a valid UUID format
+              Save your workflow to enable document uploads.
             </div>
           )}
         </div>
@@ -317,7 +197,7 @@ export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeDat
           <div
             onClick={() => !isUploading && fileInputRef.current?.click()}
             className={`border-2 border-dashed border-gray-300 rounded-lg p-4 text-center transition-all ${
-              isUploading 
+              isUploading || !selectedWorkflowId 
                 ? 'cursor-not-allowed opacity-50' 
                 : 'cursor-pointer hover:border-gray-400 hover:bg-gray-50'
             }`}
@@ -362,7 +242,7 @@ export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeDat
             onChange={handleFileUpload}
             className="hidden"
             accept=".pdf,.txt,.doc,.docx"
-            disabled={isUploading}
+            disabled={isUploading || !selectedWorkflowId}
           />
         </div>
 
@@ -377,7 +257,7 @@ export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeDat
         <div>
           <label className="block text-xs font-medium text-gray-600 mb-1">Embedding Model</label>
           <select
-            value={config.embeddingModel}
+            value={config.embeddingModel || ''}
             onChange={(e) => handleConfigChange('embeddingModel', e.target.value)}
             className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"
           >
@@ -385,7 +265,6 @@ export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeDat
             <option value="text-embedding-3-small">text-embedding-3-small</option>
             <option value="text-embedding-ada-002">text-embedding-ada-002</option>
             <option value="models/embedding-001">embedding-001 (Free, Recommended)</option>
-
           </select>
         </div>
 
@@ -394,7 +273,7 @@ export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeDat
           <label className="block text-xs font-medium text-gray-600 mb-1">API Key (Optional)</label>
           <input
             type="password"
-            value={config.apiKey}
+            value={config.apiKey || ''}
             onChange={(e) => handleConfigChange('apiKey', e.target.value)}
             placeholder="••••••••••••••••••••"
             className="w-full p-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none"

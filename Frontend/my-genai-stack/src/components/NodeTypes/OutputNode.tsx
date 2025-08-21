@@ -5,8 +5,13 @@ import { FileOutput, Settings, Trash2, Copy, CheckCircle } from 'lucide-react';
 import { useWorkflowStore } from '../../store/workflowStore.ts';
 import type { NodeData } from '../../store/workflowStore.ts';
 
+type WorkflowStore = {
+  removeNode: (id: string) => void;
+  // add other properties if needed
+};
+
 export const OutputNode = memo(({ data, id, selected }: NodeProps<NodeData>) => {
-  const { removeNode } = useWorkflowStore();
+  const { removeNode } = useWorkflowStore() as WorkflowStore;
   const [copied, setCopied] = React.useState(false);
   
   const handleDelete = useCallback(() => {

@@ -540,70 +540,70 @@ const WorkflowBuilderPage = () => {
 };
 
 // Chat Modal Component
-const ChatModal = ({ isOpen, onClose, workflowId }) => {
-  const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState('');
+// const ChatModal = ({ isOpen, onClose, workflowId }) => {
+//   const [messages, setMessages] = useState([]);
+//   const [inputValue, setInputValue] = useState('');
 
-  const sendMessage = () => {
-    if (inputValue.trim()) {
-      setMessages([...messages, { text: inputValue, sender: 'user' }]);
-      // Simulate AI response
-      setTimeout(() => {
-        setMessages(prev => [...prev, { 
-          text: 'I can help you with your workflow. What would you like to know?', 
-          sender: 'ai' 
-        }]);
-      }, 1000);
-      setInputValue('');
-    }
-  };
+//   const sendMessage = () => {
+//     if (inputValue.trim()) {
+//       setMessages([...messages, { text: inputValue, sender: 'user' }]);
+//       // Simulate AI response
+//       setTimeout(() => {
+//         setMessages(prev => [...prev, { 
+//           text: 'I can help you with your workflow. What would you like to know?', 
+//           sender: 'ai' 
+//         }]);
+//       }, 1000);
+//       setInputValue('');
+//     }
+//   };
 
-  if (!isOpen) return null;
+//   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg w-96 h-[500px] flex flex-col shadow-xl">
-        <div className="p-4 border-b flex items-center justify-between">
-          <h3 className="font-semibold">Chat with Stack</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 text-xl"
-          >
-            ×
-          </button>
-        </div>
-        <div className="flex-1 p-4 overflow-y-auto">
-          {messages.map((msg, idx) => (
-            <div key={idx} className={`mb-3 ${msg.sender === 'user' ? 'text-right' : ''}`}>
-              <div className={`inline-block p-3 rounded-lg ${
-                msg.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100'
-              }`}>
-                {msg.text}
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="p-4 border-t">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder="Type your message..."
-              className="flex-1 p-2 border rounded-lg"
-            />
-            <button
-              onClick={sendMessage}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-            >
-              Send
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+//   return (
+//     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+//       <div className="bg-white rounded-lg w-96 h-[500px] flex flex-col shadow-xl">
+//         <div className="p-4 border-b flex items-center justify-between">
+//           <h3 className="font-semibold">Chat with Stack</h3>
+//           <button
+//             onClick={onClose}
+//             className="text-gray-500 hover:text-gray-700 text-xl"
+//           >
+//             ×
+//           </button>
+//         </div>
+//         <div className="flex-1 p-4 overflow-y-auto">
+//           {messages.map((msg, idx) => (
+//             <div key={idx} className={`mb-3 ${msg.sender === 'user' ? 'text-right' : ''}`}>
+//               <div className={`inline-block p-3 rounded-lg ${
+//                 msg.sender === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-100'
+//               }`}>
+//                 {msg.text}
+//               </div>
+//             </div>
+//           ))}
+//         </div>
+//         <div className="p-4 border-t">
+//           <div className="flex gap-2">
+//             <input
+//               type="text"
+//               value={inputValue}
+//               onChange={(e) => setInputValue(e.target.value)}
+//               onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+//               placeholder="Type your message..."
+//               className="flex-1 p-2 border rounded-lg"
+//             />
+//             <button
+//               onClick={sendMessage}
+//               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+//             >
+//               Send
+//             </button>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 
 export default WorkflowBuilderPage;
