@@ -72,47 +72,7 @@ async def get_stack_by_id(stack_id: str):
             detail=f"Failed to retrieve stack: {str(e)}"
         )
 
-@router.delete("/stack/{stack_id}")
-async def delete_stack(stack_id: str):
-    """Delete a stack and all associated data"""
-    try:
-        # Check if stack exists
-        stack = await StackDB.get_stack_by_id(stack_id)
-        if not stack:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Stack with ID {stack_id} not found"
-            )
-        
-        # Note: Due to CASCADE constraints in database schema,
-        # deleting stack will automatically delete associated workflows,
-        # documents, and API keys
-        from db.supabase import get_supabase
-        client = get_supabase()
-        
-        result = client.table("stack").delete().eq("id", stack_id).execute()
-        
-        if not result.data:
-            raise HTTPException(
-                status_code=500,
-                detail="Failed to delete stack"
-            )
-        
-        logger.info(f"Deleted stack: {stack_id} - {stack['name']}")
-        
-        return {"message": f"Stack {stack_id} deleted successfully"}
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error deleting stack {stack_id}: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to delete stack: {str(e)}"
-        )
 
-@router.get("/stack/{stack_id}/stats")
-async def get_stack_statistics(stack_id: str):
     """Get statistics for a stack"""
     try:
         # Check if stack exists
