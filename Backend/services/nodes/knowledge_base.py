@@ -21,7 +21,7 @@ class KnowledgeBaseNode:
         # Get node configuration
         config = node_data.get("data", {})
         embedding_model = config.get("embedding_model", "text-embedding-3-large")
-        similarity_threshold = config.get("similarity_threshold", 0.7)
+        similarity_threshold = config.get("similarity_threshold", 0.65)
         max_chunks = config.get("max_chunks", 5)
         
         try:

@@ -383,50 +383,8 @@ class EmbeddingsService:
         except Exception as e:
             return {"error": str(e)}
     
-    def delete_collection(self, stack_id: str) -> bool:
-        """Delete entire collection for a stack"""
-        try:
-            collection_name = f"stack_{stack_id.replace('-', '_')}"
-            self.chroma_client.delete_collection(collection_name)
-            
-            # Remove from cache
-            if collection_name in self.collections:
-                del self.collections[collection_name]
-                
-            print(f"🗑️ Deleted collection: {collection_name}")
-            return True
-        except Exception as e:
-            print(f"❌ Failed to delete collection: {e}")
-            return False
     
-    def debug_collection_content(self, stack_id: str, limit: int = 5) -> Dict:
-        """Debug method to inspect collection content"""
-        try:
-            collection = self.get_collection(stack_id)
-            
-            results = collection.get(
-                limit=limit,
-                include=["documents", "metadatas"]
-            )
-            
-            debug_info = {
-                "total_count": collection.count(),
-                "sample_chunks": []
-            }
-            
-            if results["documents"]:
-                for i, (doc, metadata) in enumerate(zip(results["documents"], results["metadatas"])):
-                    debug_info["sample_chunks"].append({
-                        "index": i,
-                        "content_preview": doc[:200] if doc else "No content",
-                        "metadata": metadata,
-                        "content_length": len(doc) if doc else 0
-                    })
-            
-            return debug_info
-            
-        except Exception as e:
-            return {"error": str(e)}
+    
 
 # Global instance
 embeddings_service = EmbeddingsService()

@@ -60,10 +60,7 @@ class EncryptionService:
 
 # Global instance
 encryption_service = EncryptionService()
-
-def get_encryption_service() -> EncryptionService:
-    """Get encryption service instance"""
-    return encryption_service
+ 
 
 # Utility functions
 def encrypt_api_key(api_key: str) -> str:

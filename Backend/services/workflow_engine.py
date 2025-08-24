@@ -153,7 +153,7 @@ class WorkflowOrchestrator:
             embedding_model = "models/embedding-001"  # Keep Gemini format
         
         top_k = node_data.get("top_k") or config_data.get("max_chunks", 5)
-        similarity_threshold = node_data.get("similarity_threshold") or config_data.get("similarity_threshold", 0.7)
+        similarity_threshold = node_data.get("similarity_threshold") or config_data.get("similarity_threshold", 0.65)
         
         # Get API key - check multiple locations
         api_key = (

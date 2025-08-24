@@ -161,14 +161,7 @@ class WebSearchService:
         
         return [result["url"] for result in search_results["results"] if result.get("url")]
     
-    def is_provider_supported(self, provider: str) -> bool:
-        """Check if search provider is supported"""
-        return provider in ["serpapi", "brave"]
     
-    def get_supported_providers(self) -> List[str]:
-        """Get list of supported search providers"""
-        return ["serpapi", "brave"]
-
 # Global instance
 web_search_service = WebSearchService()
 
