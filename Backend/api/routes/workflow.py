@@ -126,6 +126,7 @@ async def execute_workflow(execution_request: WorkflowExecutionRequest):
             status_code=500,
             detail=f"Failed to execute workflow: {str(e)}"
         )
+
     """Execute workflow with user query"""
     try:
         # Validate stack exists

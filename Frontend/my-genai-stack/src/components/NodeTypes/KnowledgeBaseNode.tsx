@@ -119,9 +119,12 @@ export const KnowledgeBaseNode = memo(({ data, id, selected }: NodeProps<NodeDat
     setUploadError(null);
   }, [id, updateNodeConfig]);
 
-  const handleConfigChange = useCallback((key: keyof NodeConfig, value: any) => {
-    updateNodeConfig(id, { [key]: value });
-  }, [id, updateNodeConfig]);
+  const handleConfigChange = useCallback((key: string, value: any) => {
+  updateNodeConfig(id, { 
+    ...data.config,
+    [key]: value 
+  });
+}, [id, updateNodeConfig, data.config]);
 
   const handleDelete = useCallback(() => {
     removeNode(id);

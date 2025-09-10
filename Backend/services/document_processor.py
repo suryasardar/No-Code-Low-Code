@@ -287,18 +287,7 @@ class DocumentProcessor:
         
         return ""
     
-    def update_chunk_size(self, chunk_size: int, chunk_overlap: int = None):
-        """Update text splitter configuration"""
-        if chunk_overlap is None:
-            chunk_overlap = min(150, chunk_size // 5)  # Default to 20% of chunk size
-        
-        self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap,
-            length_function=len,
-            separators=["\n\n", "\n", ".", "!", "?", ";", ",", " ", ""]
-        )
-        print(f"🔧 Updated chunk size to {chunk_size} with {chunk_overlap} overlap")
+     
 
 # Global instance
 document_processor = DocumentProcessor()

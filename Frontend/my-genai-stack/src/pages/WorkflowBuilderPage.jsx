@@ -169,35 +169,42 @@ const WorkflowBuilderPage = () => {
   };
 
   const getDefaultConfig = (type) => {
-    switch (type) {
-      case 'llmNode':
-        return {
-          model: 'GPT-4o-Mini',
-          apiKey: '',
-          temperature: '0.7',
-          webSearchEnabled: false,
-          serpApiKey: '',
-          prompt: 'You are a helpful AI assistant.',
-        };
-      case 'knowledgeBaseNode':
-        return {
-          embeddingModel: 'text-embedding-3-large',
-          apiKey: '',
-          uploadedFileName: '',
-          uploadedFile: null,
-        };
-      case 'userQueryNode':
-        return {
-          query: 'Write your query here',
-        };
-      case 'outputNode':
-        return {
-          output: 'Workflow output will appear here.',
-        };
-      default:
-        return {};
-    }
-  };
+  switch (type) {
+    case 'llmNode':
+      return {
+        model: 'gpt-4o-mini', // Use lowercase to match backend
+        apiKey: '',
+        temperature: '0.7',
+        webSearchEnabled: false,
+        serpApiKey: '',
+        prompt: 'You are a helpful AI assistant.',
+      };
+    case 'knowledgeBaseNode':
+      return {
+        embeddingModel: 'text-embedding-3-large',
+        apiKey: '',
+        uploadedFileName: '',
+        uploadedFile: null,
+      };
+    case 'userQueryNode':
+      return {
+        query: 'Write your query here',
+      };
+    case 'outputNode':
+      return {
+        output: 'Workflow output will appear here.',
+      };
+    case 'webSearchNode': // Add this case
+      return {
+        webSearchEnabled: true,
+        serpApiKey: '',
+        provider: 'serpapi',
+        numResults: 5,
+      };
+    default:
+      return {};
+  }
+};
 
   // Save workflow only
   const handleSaveWorkflow = async () => {

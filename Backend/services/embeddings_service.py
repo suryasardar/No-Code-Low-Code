@@ -270,7 +270,8 @@ class EmbeddingsService:
                     # Convert distance to similarity score (ChromaDB uses L2 distance)
                     # Better similarity calculation
                     similarity_score = max(0.0, 1.0 / (1.0 + distance))
-                    
+                    # similarity_score = max(0.0, 1.0 - (distance / 2.0))
+
                     print(f"  Result {i+1}: similarity={similarity_score:.3f}, distance={distance:.3f}")
                     
                     if similarity_score >= similarity_threshold:

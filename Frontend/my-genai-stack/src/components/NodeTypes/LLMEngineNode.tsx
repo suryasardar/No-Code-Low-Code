@@ -15,26 +15,32 @@ export const LLMNode = memo(({ data, id, selected }: NodeProps<NodeData>) => {
   const { updateNodeConfig, removeNode } = useWorkflowStore()as WorkflowStore;
   
   const handleConfigChange = useCallback((key: string, value: any) => {
-    updateNodeConfig(id, { [key]: value });
-  }, [id, updateNodeConfig]);
+  updateNodeConfig(id, { 
+    config: {
+      ...data.config,
+      [key]: value 
+    }
+  });
+}, [id, updateNodeConfig, data.config]);
 
   const handleDelete = useCallback(() => {
     removeNode(id);
   }, [id, removeNode]);
 
-  const config = data.config || {
-    model: 'gemini-1.5-flash',
-    apiKey: '',
-    temperature: '0.7',
-    webSearchEnabled: false,
-    serpApiKey: '',
-    prompt: `You are a helpful AI assistant. Use web search if the context lacks information.
+  const config = data.config;
+//    || {
+//     model: 'gemini-1.5-flash',
+//     apiKey: '',
+//     temperature: '0.7',
+//     webSearchEnabled: false,
+//     serpApiKey: '',
+//     prompt: `You are a helpful AI assistant. Use web search if the context lacks information.
 
-CONTEXT: {context}
-User Query: {query}
+// CONTEXT: {context}
+// User Query: {query}
 
-Please provide a comprehensive answer.`
-  };
+// Please provide a comprehensive answer.`
+//   };
 
   return (
     <div className={`bg-white rounded-lg shadow-lg border-2 ${

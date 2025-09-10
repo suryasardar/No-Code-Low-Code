@@ -19,6 +19,9 @@ export type NodeConfig = {
   uploadedAt?: string | null;
   query?: string;
   output?: string;
+  provider?: string;
+  numResults?: number;
+  top_k?: number;
 };
 
 export type NodeType = 'userQueryNode' | 'knowledgeBaseNode' | 'llmNode' | 'outputNode' | 'webSearchNode';
@@ -220,13 +223,20 @@ function extractApiKeys(nodes: any[]): Record<string, string> {
   nodes.forEach(node => {
     const config = node.data?.config;
     if (config) {
+      // LLM Node API Key
       if ((node.data.type === 'llmNode' || node.type === 'llmNode') && config.apiKey) {
         apiKeys.llm = config.apiKey;
       }
+      // Knowledge Base API Key
       if ((node.data.type === 'knowledgeBaseNode' || node.type === 'knowledgeBaseNode') && config.apiKey) {
         apiKeys.knowledge = config.apiKey;
       }
+      // Web Search API Key
       if ((node.data.type === 'webSearchNode' || node.type === 'webSearchNode') && config.serpApiKey) {
+        apiKeys.websearch = config.serpApiKey;
+      }
+      // Also check LLM nodes for web search API keys (if they have web search enabled)
+      if ((node.data.type === 'llmNode' || node.type === 'llmNode') && config.webSearchEnabled && config.serpApiKey) {
         apiKeys.websearch = config.serpApiKey;
       }
     }
@@ -312,7 +322,10 @@ Please provide a comprehensive answer.`,
           break;
         case 'webSearchNode':
           initialConfig = {
-            serpApiKey: '',
+          webSearchEnabled: true,
+          serpApiKey: '',
+          provider: 'serpapi' as any,
+          numResults: 5,
           };
           break;
       }
