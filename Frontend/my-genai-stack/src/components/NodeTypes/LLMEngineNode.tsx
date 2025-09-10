@@ -15,19 +15,16 @@ export const LLMNode = memo(({ data, id, selected }: NodeProps<NodeData>) => {
   const { updateNodeConfig, removeNode } = useWorkflowStore()as WorkflowStore;
   
   const handleConfigChange = useCallback((key: string, value: any) => {
-  updateNodeConfig(id, { 
-    config: {
-      ...data.config,
-      [key]: value 
-    }
-  });
-}, [id, updateNodeConfig, data.config]);
+  updateNodeConfig(id, { [key]: value });
+}, [id, updateNodeConfig]);
+
 
   const handleDelete = useCallback(() => {
     removeNode(id);
   }, [id, removeNode]);
 
   const config = data.config;
+  console.log(config,"reddy");
 //    || {
 //     model: 'gemini-1.5-flash',
 //     apiKey: '',
