@@ -4,6 +4,13 @@
 @tailwind components;
 @tailwind utilities;
 
+
+.react-flow__handle {
+  width: 10px !important;   /* or 24px, 32px depending on how big you want */
+  height: 10px !important;
+  border-radius: 9999px !important; /* make it a perfect circle */
+}
+
 /*  
 @layer base {
   html {

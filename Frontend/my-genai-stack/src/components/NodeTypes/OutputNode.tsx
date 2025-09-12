@@ -32,7 +32,7 @@ export const OutputNode = memo(({ data, id, selected }: NodeProps<NodeData>) => 
   return (
     <div className={`bg-white rounded-lg shadow-lg border-2 ${
       selected ? 'border-emerald-500' : 'border-gray-200'
-    } min-w-[320px] hover:shadow-xl transition-all duration-200`}>
+    } max-w-[320px] hover:shadow-xl transition-all duration-200`}>
       
       {/* Input Handle */}
       <Handle

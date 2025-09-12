@@ -204,16 +204,15 @@ function dictToEdges(edgesDict: any): any[] {
   if (!edgesDict || typeof edgesDict !== 'object') return [];
   
   return Object.values(edgesDict).map((edge: any) => ({
-    id: edge.id,
-    source: edge.source,
-    target: edge.target,
-    sourceHandle: edge.sourceHandle,
-    targetHandle: edge.targetHandle,
-    type: edge.type || 'smoothstep',
-    animated: true,
-    style: { stroke: '#FF6B6B', strokeWidth: 2 },
-    data: edge.data || {}
-  }));
+  id: edge.id,
+  source: edge.source,
+  target: edge.target,
+  sourceHandle: edge.sourceHandle,
+  targetHandle: edge.targetHandle,
+  data: edge.data || {},
+   
+}));
+
 }
 
 // Extract API keys from nodes
@@ -385,13 +384,15 @@ Please provide a comprehensive answer.`,
     set((state) => {
       const edgeName = determineEdgeName(connection, state.nodes);
       const newEdge = {
-        ...connection,
-        id: `e${connection.source}-${connection.target}-${Date.now()}`,
-        type: 'smoothstep',
-        animated: true,
-        style: { stroke: '#FF6B6B', strokeWidth: 2 },
-        data: { name: edgeName },
-      };
+  id: `e${connection.source}-${connection.target}-${connection.targetHandle || "default"}-${Date.now()}`,
+  source: connection.source,
+  target: connection.target,
+  sourceHandle: connection.sourceHandle || null,
+  targetHandle: connection.targetHandle || null,
+  data: { name: edgeName },
+   
+};
+
 
       return {
         edges: addEdge(newEdge, state.edges),
