@@ -5,7 +5,9 @@ import { FileText, Upload, Settings, Trash2, X, Loader2, CheckCircle, AlertCircl
 import { useWorkflowStore, NodeData, NodeConfig } from '../../store/workflowStore';
 
 // API configuration
-const API_BASE_URL = 'http://127.0.0.1:8000';
+// const API_BASE_URL = 'http://127.0.0.1:8000';
+const API_BASE_URL = 'http://43.205.119.16:8000';
+
 
 // UUID validation function
 const isValidUUID = (str: string): boolean => {

@@ -20,10 +20,13 @@ const GenAIStackHomepage = () => {
     loadWorkflows();
   }, []);
 
+  const API_BASE_URL = 'http://43.205.119.16:8000';
+
+
   const loadWorkflows = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/stack');
+      const response = await fetch(`${API_BASE_URL}/api/stack`);
       if (response.ok) {
         const data = await response.json();
         setWorkflows(data.workflows || data || []);
@@ -54,7 +57,7 @@ const GenAIStackHomepage = () => {
 
       try {
         // Save to backend
-        const response = await fetch('http://127.0.0.1:8000/api/stack', {
+        const response = await fetch(`${API_BASE_URL}/api/stack`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newWorkflowItem)
