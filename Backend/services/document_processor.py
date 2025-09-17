@@ -10,8 +10,8 @@ class DocumentProcessor:
     def __init__(self):
         # Optimized text splitter for resumes and technical documents
         self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=400,  # Smaller chunks for better precision
-            chunk_overlap=100,  # Good overlap to maintain context
+            chunk_size=200,  # Smaller chunks for better precision
+            chunk_overlap=50,  # Good overlap to maintain context
             length_function=len,
             # Better separators for structured documents like resumes
             separators=["\n\n", "\n", ".", "!", "?", ";", ",", " ", ""]

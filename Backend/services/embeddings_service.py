@@ -33,7 +33,7 @@ class EmbeddingsService:
                 self.chroma_client.heartbeat()
                 print("✅ Connected to ChromaDB server")
             except Exception as server_error:
-                print(f"⚠️ ChromaDB server connection failed: {server_error}")
+                # print(f"⚠️ ChromaDB server connection failed: {server_error}")
                 # Fallback to persistent local client
                 self.chroma_client = chromadb.PersistentClient(
                     path="./chroma_data",
