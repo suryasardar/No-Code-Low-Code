@@ -6,8 +6,7 @@ import { useWorkflowStore, NodeData, NodeConfig } from '../../store/workflowStor
 
 // API configuration
 // const API_BASE_URL = 'http://127.0.0.1:8000';
-const API_BASE_URL = 'http://43.205.119.16:8000';
-
+ 
 
 // UUID validation function
 const isValidUUID = (str: string): boolean => {

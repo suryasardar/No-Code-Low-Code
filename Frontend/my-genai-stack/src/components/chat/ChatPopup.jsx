@@ -17,8 +17,7 @@ const ChatPopup = ({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 // const API_BASE_URL = 'http://127.0.0.1:8000';
-const API_BASE_URL = 'http://43.205.119.16:8000';
-
+ 
 // console.log("API_BASE_URL:", stackId);
   useEffect(() => {
     scrollToBottom();

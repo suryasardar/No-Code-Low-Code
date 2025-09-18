@@ -20,8 +20,7 @@ const GenAIStackHomepage = () => {
     loadWorkflows();
   }, []);
 
-  const API_BASE_URL = 'http://43.205.119.16:8000';
-
+ 
 
   const loadWorkflows = async () => {
     setIsLoading(true);
