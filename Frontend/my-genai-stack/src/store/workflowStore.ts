@@ -426,7 +426,7 @@ Please provide a comprehensive answer.`,
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/workflow`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/workflow`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -461,7 +461,7 @@ Please provide a comprehensive answer.`,
         return true;
       }
       
-      const response = await fetch(`${API_BASE_URL}/api/workflow/${workflowId}`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/workflow/${workflowId}`);
       
       if (!response.ok) {
         if (response.status === 404) {
@@ -526,7 +526,7 @@ Please provide a comprehensive answer.`,
         query: userQuery
       };
 
-      const executeResponse = await fetch(`${API_BASE_URL}/api/workflow/execute`, {
+      const executeResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/workflow/execute`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

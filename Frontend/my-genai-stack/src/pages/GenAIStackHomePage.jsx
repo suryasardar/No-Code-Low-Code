@@ -26,7 +26,7 @@ const GenAIStackHomepage = () => {
   const loadWorkflows = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/stack`);
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/stack`);
       if (response.ok) {
         const data = await response.json();
         setWorkflows(data.workflows || data || []);
@@ -57,7 +57,7 @@ const GenAIStackHomepage = () => {
 
       try {
         // Save to backend
-        const response = await fetch(`${API_BASE_URL}/api/stack`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/stack`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newWorkflowItem)

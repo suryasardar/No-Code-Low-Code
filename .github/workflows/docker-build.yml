@@ -1,0 +1,43 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # ---------- Frontend ----------
+      - name: Build and Push Frontend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Frontend/my-genai-stack
+          file: ./Frontend/my-genai-stack/Dockerfile
+          push: true
+          tags: |
+            suryaprakash08/lowcode-frontend:latest
+            suryaprakash08/lowcode-frontend:v${{ github.run_number }}
+
+      # ---------- Backend ----------
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v4
+        with:
+          context: ./Backend
+          file: ./Backend/Dockerfile
+          push: true
+          tags: |
+            suryaprakash08/lowcode-backend:latest
+            suryaprakash08/lowcode-backend:v${{ github.run_number }}

@@ -19,7 +19,7 @@ const ChatPopup = ({
 // const API_BASE_URL = 'http://127.0.0.1:8000';
 const API_BASE_URL = 'http://43.205.119.16:8000';
 
-console.log("API_BASE_URL:", stackId);
+// console.log("API_BASE_URL:", stackId);
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -33,7 +33,7 @@ console.log("API_BASE_URL:", stackId);
 
   const loadWorkflowInfo = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/chat/validate?stack_id=${stackId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/validate?stack_id=${stackId}`, {
         method: 'POST'
       });
       if (response.ok) {
@@ -63,7 +63,7 @@ console.log("API_BASE_URL:", stackId);
 
     try {
       // Call your workflow-based chat endpoint
-      const response = await fetch(`${API_BASE_URL}/api/chat`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -33,7 +33,7 @@ const uploadDocument = async (file: File, stackId: string, apiKey?: string, embe
     formData.append('embedding_model', embeddingModel);
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/documents/upload`, {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/documents/upload`, {
     method: 'POST',
     body: formData,
   });
